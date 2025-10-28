@@ -1,7 +1,7 @@
 //Structure of the board
 let board;
-const rowCount = 21;
-const columnCount = 19;
+let rowCount = 21;
+let columnCount = 19;
 const tileSize = 32;
 const boardWidth = columnCount * tileSize;
 const boardHeight = rowCount * tileSize;
@@ -68,6 +68,35 @@ const tileMap = [
     "X                 X",
     "XXXXXXXXXXXXXXXXXXX" 
 ];
+
+const tileMapLevel2 = [
+  "XXXXXXXXXXXXXXXXXXXXXXXXX",
+  "X   X     X     X     X X",
+  "X X X XXX X XXX X XXX X X",
+  "X X     X   X   X     X X",
+  "X XXXXX X XXXXX X XXXXX X",
+  "X     X X   X   X X     X",
+  "XXXXX X XXX X XXX X XXXXX",
+  "X   X X     X     X X   X",
+  "X X X XXXXX X XXXXX X X X",
+  "X X X   bpo   C   X X X X",
+  "X X X XXXXX X XXXXX X X X",
+  "X   X X     X     X X   X",
+  "XXXXX X XXX X XXX X XXXXX",
+  "X     X X   X   X X     X",
+  "X XXXXX X XXXXX X XXXXX X",
+  "X X     X   X   X     X X",
+  "X X XXX X XXX X XXX X X X",
+  "X   X     P     X     X X",
+  "X XXXXX XXXXXXX XXXXX X X",
+  "X       X       X       X",
+  "XXXXXXXXXXXXXXXXXXXXXXXXX"
+];
+
+function nextLevel(){
+    rowCount = 21;
+    columnCount = 25;
+}
 
 const walls = new Set();
 const foods = new Set();
