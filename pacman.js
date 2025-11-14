@@ -1,4 +1,6 @@
-//Structure of the board
+// =============================
+// GAME SETUP AND GLOBAL VARIABLES
+// =============================
 let board;
 let rowCount = 21;
 let columnCount = 19;
@@ -7,44 +9,46 @@ const boardWidth = columnCount * tileSize;
 const boardHeight = rowCount * tileSize;
 let context;
 
-// images
-let blueGhostImg;
-let orangeGhostImg;
-let pinkGhostImg;
-let redGhostImg;
-let pacmanUpImg;
-let pacmanDownImg;
-let pacmanLeftImg;
-let pacmanRightImg;
-let wallImg;
-let cherry;
+// Game assets
+let blueGhostImg, orangeGhostImg, pinkGhostImg, redGhostImg;
+let pacmanUpImg, pacmanDownImg, pacmanLeftImg, pacmanRightImg;
+let wallImg, cherry;
 
-const directions = ["U", "D", "L", "R"]
+const directions = ["U", "D", "L", "R"];
 let score = 0;
 let lives = 3;
 let gameOver = false;
+let gameStarted = false; // Used to track if gameplay has begun
+let restarting = false;  // Used after game over for restart prompt
 
-
-window.onload = function(){
-    board = document.getElementById("board")
+// =============================
+// INITIALIZATION
+// =============================
+window.onload = function() {
+    board = document.getElementById("board");
     board.height = boardHeight;
     board.width = boardWidth;
-    context = board.getContext("2d") //for drawing on board
-    board.getContext("2d") // this is used for drawing on the board
+    context = board.getContext("2d");
 
     loadImages();
     loadMap();
-    // console.log(walls.size);
-    // console.log(foods.size);
-    // console.log(ghosts.size);
-    for(let ghost of ghosts.values()){
-        const newDirection = directions[(Math.floor(Math.random()*4))];
+
+    // Assign random starting directions to ghosts
+    for (let ghost of ghosts.values()) {
+        const newDirection = directions[Math.floor(Math.random() * 4)];
         ghost.updateDirection(newDirection);
     }
-    update()
-    document.addEventListener("keyup", movePacman)
-}
 
+    // Start countdown animation
+    startCountdownAnimation();
+
+    // Keyboard listener for Pac-Man movement and restart logic
+    document.addEventListener("keyup", movePacman);
+};
+
+// =============================
+// MAP DATA (LEVEL 1)
+// =============================
 const tileMap = [
     "XXXXXXXXXXXXXXXXXXX",
     "X        X        X",
@@ -66,203 +70,169 @@ const tileMap = [
     "X    X   X   X    X",
     "X XXXXXX X XXXXXX X",
     "X                 X",
-    "XXXXXXXXXXXXXXXXXXX" 
+    "XXXXXXXXXXXXXXXXXXX"
 ];
 
-const tileMapLevel2 = [
-  "XXXXXXXXXXXXXXXXXXXXXXXXX",
-  "X   X     X     X     X X",
-  "X X X XXX X XXX X XXX X X",
-  "X X     X   X   X     X X",
-  "X XXXXX X XXXXX X XXXXX X",
-  "X     X X   X   X X     X",
-  "XXXXX X XXX X XXX X XXXXX",
-  "X   X X     X     X X   X",
-  "X X X XXXXX X XXXXX X X X",
-  "X X X   bpo   C   X X X X",
-  "X X X XXXXX X XXXXX X X X",
-  "X   X X     X     X X   X",
-  "XXXXX X XXX X XXX X XXXXX",
-  "X     X X   X   X X     X",
-  "X XXXXX X XXXXX X XXXXX X",
-  "X X     X   X   X     X X",
-  "X X XXX X XXX X XXX X X X",
-  "X   X     P     X     X X",
-  "X XXXXX XXXXXXX XXXXX X X",
-  "X       X       X       X",
-  "XXXXXXXXXXXXXXXXXXXXXXXXX"
-];
-
-function nextLevel(){
-    rowCount = 21;
-    columnCount = 25;
-}
-
+// =============================
+// GAME OBJECT COLLECTIONS
+// =============================
 const walls = new Set();
 const foods = new Set();
 const ghosts = new Set();
 let pacman;
 
-function loadImages(){
-    wallImg = new Image(); //X
-    wallImg.src = "./Images/wall.png"
+// =============================
+// IMAGE LOADING
+// =============================
+function loadImages() {
+    wallImg = new Image();
+    wallImg.src = "./Images/wall.png";
 
-    //ghost images
-    blueGhostImg = new Image(); //b
-    blueGhostImg.src = "./Images/blueGhost.png"
+    blueGhostImg = new Image();
+    blueGhostImg.src = "./Images/blueGhost.png";
 
-    orangeGhostImg = new Image(); //o
-    orangeGhostImg.src = "./Images/orangeGhost.png"
+    orangeGhostImg = new Image();
+    orangeGhostImg.src = "./Images/orangeGhost.png";
 
-    pinkGhostImg = new Image(); //p
-    pinkGhostImg.src = "./Images/pinkGhost.png"
+    pinkGhostImg = new Image();
+    pinkGhostImg.src = "./Images/pinkGhost.png";
 
-    redGhostImg = new Image(); //r
-    redGhostImg.src = "./Images/redGhost.png"
+    redGhostImg = new Image();
+    redGhostImg.src = "./Images/redGhost.png";
 
-
-    //pacman images
-    pacmanUpImg = new Image(); //p
-    pacmanUpImg.src = "./Images/pacmanUp.png"
+    pacmanUpImg = new Image();
+    pacmanUpImg.src = "./Images/pacmanUp.png";
 
     pacmanDownImg = new Image();
-    pacmanDownImg.src = "./Images/pacmanDown.png"
+    pacmanDownImg.src = "./Images/pacmanDown.png";
 
-    pacmanLeftImg = new Image ();
-    pacmanLeftImg.src = "./Images/pacmanLeft.png"
+    pacmanLeftImg = new Image();
+    pacmanLeftImg.src = "./Images/pacmanLeft.png";
 
     pacmanRightImg = new Image();
-    pacmanRightImg.src = "./Images/pacmanRight.png"
-
-    //O empty space and the blocks with nothing are where the food will be stored
-    
-    //cherry image
-    // cherryImage = new Image();
-    // cherryImage.src = "./cherry2.png"
+    pacmanRightImg.src = "./Images/pacmanRight.png";
 }
 
-function loadMap(){
+// =============================
+// MAP CREATION FUNCTION
+// =============================
+function loadMap() {
     walls.clear();
     foods.clear();
     ghosts.clear();
 
-    for (let r = 0; r < rowCount; r++){
-        for(let c = 0; c < columnCount; c++){
-            const row = tileMap[r];
-            const tileMapChar = row[c];
+    for (let r = 0; r < rowCount; r++) {
+        for (let c = 0; c < columnCount; c++) {
+            const tile = tileMap[r][c];
+            const x = c * tileSize;
+            const y = r * tileSize;
 
-            const x = c*tileSize;
-            const y = r*tileSize;
-
-            if(tileMapChar == "X"){ //wall
-               const wall = new Block(wallImg, x, y, tileSize, tileSize);
-               walls.add(wall);
-            } else if(tileMapChar == "b"){
-                const ghost = new Block(blueGhostImg, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
-            } else if(tileMapChar == "p"){
-                const ghost = new Block(pinkGhostImg, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
-            } else if(tileMapChar == "o"){
-                const ghost = new Block(orangeGhostImg, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
-            } else if(tileMapChar == "r"){
-                const ghost = new Block(redGhostImg, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
-            } else if (tileMapChar == "P"){
+            if (tile == "X") {
+                walls.add(new Block(wallImg, x, y, tileSize, tileSize));
+            } else if (["b", "p", "o", "r"].includes(tile)) {
+                let img = tile == "b" ? blueGhostImg :
+                          tile == "p" ? pinkGhostImg :
+                          tile == "o" ? orangeGhostImg : redGhostImg;
+                ghosts.add(new Block(img, x, y, tileSize, tileSize));
+            } else if (tile == "P") {
                 pacman = new Block(pacmanRightImg, x, y, tileSize, tileSize);
-            } else if(tileMapChar == " "){
-                const food = new Block(null, x + 14, y + 14, 4, 4);
-                foods.add(food);
+            } else if (tile == " ") {
+                foods.add(new Block(null, x + 14, y + 14, 4, 4));
             }
-            //  else if(tileMapChar == "C"){
-            //     const cherry = new Block(cherryImage, x, y, tileSize, tileSize);
-            //     foods.add(cherry);
-            // }
         }
     }
 }
 
-function update(){
-    if(gameOver){
+// =============================
+// MAIN GAME LOOP
+// =============================
+function update() {
+    if (gameOver) {
         return;
     }
-    move()
+    move();
     draw();
     setTimeout(update, 50);
 }
 
-function draw(){
-    context.clearRect(0, 0, board.width, board.height)
+// =============================
+// RENDERING
+// =============================
+function draw() {
+    context.clearRect(0, 0, board.width, board.height);
+
+    // Draw Pac-Man
     context.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height);
-    for(let ghost of ghosts.values()){
+
+    // Draw ghosts
+    for (let ghost of ghosts.values()) {
         context.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height);
     }
-    for(let wall of walls.values()){
+
+    // Draw walls
+    for (let wall of walls.values()) {
         context.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height);
     }
+
+    // Draw food
     context.fillStyle = "white";
-    for(let food of foods.values()){
-        context.fillRect(food.x, food.y, food.width, food.height)
+    for (let food of foods.values()) {
+        context.fillRect(food.x, food.y, food.width, food.height);
     }
 
-    //score 
-    context.fillStyle = "white";
-    context.font = "14px sans-serif";
-    if(gameOver){
-        context.fillText("Game Over: " + String(score), tileSize/2, tileSize/2);
-    } else{
-        context.fillText("x" + String(lives) + " " + String(score), tileSize/2, tileSize/2);
-    }
+    // Draw score and lives
+    context.fillStyle = "yellow";
+    context.font = "16px 'Press Start 2P', sans-serif";
+    context.fillText("Lives: " + lives + "   Score: " + score, 10, 20);
 }
 
-function move(){
+// =============================
+// MOVEMENT LOGIC
+// =============================
+function move() {
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
 
-    //collision for ghosts
-    for(let ghost of ghosts.values()){
-        if(collision(ghost, pacman)){
+    // Collision with ghosts
+    for (let ghost of ghosts.values()) {
+        if (collision(ghost, pacman)) {
             lives -= 1;
-            if(lives == 0){
+            if (lives == 0) {
                 gameOver = true;
+                gameOverAnimation();
                 return;
             }
             resetPositions();
         }
     }
 
-    //check for collision
-    for(let wall of walls.values()){
-        if(collision(pacman, wall)){
+    // Collision with walls
+    for (let wall of walls.values()) {
+        if (collision(pacman, wall)) {
             pacman.x -= pacman.velocityX;
             pacman.y -= pacman.velocityY;
             break;
         }
     }
 
-    for(let ghost of ghosts.values()){
-
-        if(ghost.y == tileSize*9 && ghost.direction != "U" && ghost.direction != "D"){
-            ghost.updateDirection("U")
-        }
+    // Ghost movement and wall collisions
+    for (let ghost of ghosts.values()) {
         ghost.x += ghost.velocityX;
         ghost.y += ghost.velocityY;
-        //check for collision
-        for(let wall of walls.values()){
-            if(collision(ghost, wall)){
+        for (let wall of walls.values()) {
+            if (collision(ghost, wall)) {
                 ghost.x -= ghost.velocityX;
                 ghost.y -= ghost.velocityY;
-                const newDirection = directions[(Math.floor(Math.random()*4))];
+                const newDirection = directions[Math.floor(Math.random() * 4)];
                 ghost.updateDirection(newDirection);
             }
         }
     }
 
-    //check food collision 
+    // Eat food
     let foodEaten = null;
-    for(let food of foods.values()){
-        if(collision(pacman, food)){
+    for (let food of foods.values()) {
+        if (collision(pacman, food)) {
             foodEaten = food;
             score += 10;
             break;
@@ -271,59 +241,70 @@ function move(){
     foods.delete(foodEaten);
 }
 
-function movePacman(e){
-   if(gameOver){
-    loadMap();
-    resetPositions();
-    lives = 3;
-    score = 0;
-    gameOver = false;
-    update();
-    return;
-   }
-   if(e.code == "ArrowUp" || e.code == "KeyW"){
-       pacman.updateDirection("U");
-   } else if(e.code == "ArrowDown" || e.code == "KeyS"){
-       pacman.updateDirection("D");
-   } else if(e.code == "ArrowLeft" || e.code == "KeyA"){
-       pacman.updateDirection("L");
-   } else if(e.code == "ArrowRight" || e.code == "KeyD"){
-       pacman.updateDirection("R");
-   }
+// =============================
+// INPUT HANDLER
+// =============================
+function movePacman(e) {
+    if (restarting && gameOver) {
+        // Restart the game after pressing any key
+        restarting = false;
+        loadMap();
+        resetPositions();
+        lives = 3;
+        score = 0;
+        gameOver = false;
+        gameStarted = true;
+        update();
+        return;
+    }
 
-   if(pacman.direction == "U"){
-    pacman.image = pacmanUpImg;
-   } else if (pacman.direction == "D"){
-    pacman.image = pacmanDownImg
-   } else if (pacman.direction == "L"){
-    pacman.image = pacmanLeftImg
-   } else if (pacman.direction == "R"){
-    pacman.image = pacmanRightImg
-   }
+    if (!gameStarted) return;
+
+    // Control directions
+    if (e.code == "ArrowUp" || e.code == "KeyW") pacman.updateDirection("U");
+    else if (e.code == "ArrowDown" || e.code == "KeyS") pacman.updateDirection("D");
+    else if (e.code == "ArrowLeft" || e.code == "KeyA") pacman.updateDirection("L");
+    else if (e.code == "ArrowRight" || e.code == "KeyD") pacman.updateDirection("R");
+
+    // Update Pac-Man sprite based on direction
+    if (pacman.direction == "U") pacman.image = pacmanUpImg;
+    else if (pacman.direction == "D") pacman.image = pacmanDownImg;
+    else if (pacman.direction == "L") pacman.image = pacmanLeftImg;
+    else if (pacman.direction == "R") pacman.image = pacmanRightImg;
 }
 
-function collision(a, b){
-    return a.x < b.x + b.width &&
-           a.x + a.width > b.x &&
-           a.y < b.y + b.height &&
-           a.y + a.height > b.y;
-
+// =============================
+// COLLISION DETECTION
+// =============================
+function collision(a, b) {
+    return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+    );
 }
 
-function resetPositions(){
+// =============================
+// RESET POSITIONS
+// =============================
+function resetPositions() {
     pacman.reset();
     pacman.velocityX = 0;
     pacman.velocityY = 0;
-    for (let ghost of ghosts.values()){
+
+    for (let ghost of ghosts.values()) {
         ghost.reset();
-        const newDirection = directions[(Math.floor(Math.random()*4))];
+        const newDirection = directions[Math.floor(Math.random() * 4)];
         ghost.updateDirection(newDirection);
     }
 }
 
-
+// =============================
+// BLOCK CLASS
+// =============================
 class Block {
-    constructor(image, x, y, width, height){
+    constructor(image, x, y, width, height) {
         this.image = image;
         this.x = x;
         this.y = y;
@@ -332,48 +313,113 @@ class Block {
 
         this.startX = x;
         this.startY = y;
-
         this.direction = "R";
         this.velocityX = 0;
         this.velocityY = 0;
     }
 
-     updateDirection(direction){
+    updateDirection(direction) {
         const prevDirection = this.direction;
         this.direction = direction;
-        this.updateVelocity();  
-        this.x += this.velocityX;
-        this.y += this.velocityY;     
+        this.updateVelocity();
 
-        for(let wall of walls.values()){
-            if(collision(this, wall)){
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+
+        for (let wall of walls.values()) {
+            if (collision(this, wall)) {
                 this.x -= this.velocityX;
                 this.y -= this.velocityY;
                 this.direction = prevDirection;
                 this.updateVelocity();
-
             }
         }
     }
 
-     updateVelocity(){
-        if(this.direction == "U"){
+    updateVelocity() {
+        if (this.direction == "U") {
             this.velocityX = 0;
-            this.velocityY = -tileSize /4;
-        } else if(this.direction == "D"){
+            this.velocityY = -tileSize / 4;
+        } else if (this.direction == "D") {
             this.velocityX = 0;
-            this.velocityY = tileSize /4;
-        } else if(this.direction == "L"){
-            this.velocityX = -tileSize /4;
+            this.velocityY = tileSize / 4;
+        } else if (this.direction == "L") {
+            this.velocityX = -tileSize / 4;
             this.velocityY = 0;
-        } else if(this.direction == "R"){
-            this.velocityX = tileSize /4;
+        } else if (this.direction == "R") {
+            this.velocityX = tileSize / 4;
             this.velocityY = 0;
         }
-     }
+    }
 
-       reset(){
+    reset() {
         this.x = this.startX;
         this.y = this.startY;
-       }
+    }
+}
+
+// =============================
+// ANIMATIONS
+// =============================
+
+// Countdown animation before the game starts
+function startCountdownAnimation() {
+    let count = 3;
+    const colors = ["#00FFFF", "#00FF00", "#FFD700", "#FF0000"];
+
+    const countdown = setInterval(() => {
+        context.clearRect(0, 0, boardWidth, boardHeight);
+
+        // Game title
+        const gradient = context.createLinearGradient(0, 0, boardWidth, 0);
+        gradient.addColorStop(0, "#00FFFF");
+        gradient.addColorStop(0.5, "#FFD700");
+        gradient.addColorStop(1, "#FF4500");
+
+        // context.fillStyle = gradient;
+        context.font = "40px 'Press Start 2P', sans-serif";
+        context.fillText("PAC-MAN", boardWidth / 2 - 90, boardHeight / 2 - 60);
+
+        // Countdown number
+        context.fillStyle = colors[count];
+        context.font = "80px 'Press Start 2P', sans-serif";
+        context.fillText(count, boardWidth / 2 - 20, boardHeight / 2 + 40);
+
+        count--;
+        if (count < 0) {
+            clearInterval(countdown);
+            context.clearRect(0, 0, boardWidth, boardHeight);
+            context.fillStyle = "#00FF00";
+            context.font = "50px 'Press Start 2P', sans-serif";
+            context.fillText("GO!", boardWidth / 2 - 50, boardHeight / 2);
+            setTimeout(() => {
+                gameStarted = true;
+                update();
+            }, 800);
+        }
+    }, 1000);
+}
+
+// Game over animation with score and restart prompt
+function gameOverAnimation() {
+    let opacity = 0;
+    const fade = setInterval(() => {
+        context.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+        context.fillRect(0, 0, boardWidth, boardHeight);
+
+        context.fillStyle = `rgba(255, 0, 0, ${opacity})`;
+        context.font = "40px 'Press Start 2P', sans-serif";
+        context.fillText("GAME OVER", boardWidth / 2 - 150, boardHeight / 2 - 40);
+
+        context.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        context.font = "20px 'Press Start 2P', sans-serif, centre";
+        context.fillText("SCORE: " + score, boardWidth / 2 - 80, boardHeight / 2 + 10);
+        context.fillText("Press any key to restart", boardWidth / 2 - 120, boardHeight / 2 + 60);
+
+        opacity += 0.05;
+        if (opacity >= 1) {
+            clearInterval(fade);
+            restarting = true; // Wait for key press
+        }
+    }, 80);
 }
