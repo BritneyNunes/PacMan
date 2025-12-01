@@ -21,7 +21,7 @@ let restarting = false;  // Used after game over for restart prompt
 
 // INITIALIZATION
 
-window.onload = function() {
+window.onload = function () {
     board = document.getElementById("board");
     board.height = boardHeight;
     board.width = boardWidth;
@@ -38,6 +38,7 @@ window.onload = function() {
 
     // Start countdown animation
     startCountdownAnimation();
+    createControlsMenu();
 
     // Keyboard listener for Pac-Man movement and restart logic
     document.addEventListener("keyup", movePacman);
@@ -127,8 +128,8 @@ function loadMap() {
                 walls.add(new Block(wallImg, x, y, tileSize, tileSize));
             } else if (["b", "p", "o", "r"].includes(tile)) {
                 let img = tile == "b" ? blueGhostImg :
-                          tile == "p" ? pinkGhostImg :
-                          tile == "o" ? orangeGhostImg : redGhostImg;
+                    tile == "p" ? pinkGhostImg :
+                        tile == "o" ? orangeGhostImg : redGhostImg;
                 ghosts.add(new Block(img, x, y, tileSize, tileSize));
             } else if (tile == "P") {
                 pacman = new Block(pacmanRightImg, x, y, tileSize, tileSize);
@@ -354,6 +355,46 @@ class Block {
 }
 
 
+// Controls menu
+function createControlsMenu() {
+    if (document.getElementById("controlsMenu")) return;
+
+    const menu = document.createElement("div");
+    menu.id = "controlsMenu";
+
+    // Inline styles 
+    Object.assign(menu.style, {
+        position: "fixed",
+        top: "12px",
+        right: "12px",
+        background: "rgba(0,0,0,0.65)",
+        color: "#FFD700",
+        padding: "10px 14px",
+        borderRadius: "10px",
+        fontFamily: "'Press Start 2P', Arial, sans-serif",
+        fontSize: "16px",
+        lineHeight: "1.35",
+        textAlign: "left",
+        zIndex: 1000,
+        pointerEvents: "none",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.5)"
+    });
+
+    menu.innerHTML = `
+      <div style="color:#00FF00; margin-bottom:8px; font-size:12px;">CONTROLS</div>
+
+       <div style="margin-bottom:3px;">↑ or W — Move Up</div>
+       <div style="margin-bottom:3px;">↓ or S — Move Down</div>
+       <div style="margin-bottom:3px;">← or A — Move Left</div>
+       <div style="margin-bottom:3px;">→ or D — Move Right</div>
+
+      <hr style="border:0; height:1px; background:rgba(255,255,255,0.08); margin:8px 0;">
+    `;
+
+    document.body.appendChild(menu);
+}
+
+
 // ANIMATIONS
 // =============================
 
@@ -404,7 +445,7 @@ function gameOverAnimation() {
 
         context.fillStyle = `rgba(255, 0, 0, ${opacity})`;
         context.font = "50px 'Press Start 2P', sans-serif";
-        context.fillText("GAME OVER", boardWidth / 2 - 150, boardHeight / 2 - 40);
+        context.fillText("GAME OVER", boardWidth / 2 - 180, boardHeight / 2 - 40);
 
         context.fillStyle = `rgba(255, 255, 255, ${opacity})`;
         context.font = "15px 'Press Start 2P', sans-serif, centre";
