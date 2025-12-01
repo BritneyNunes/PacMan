@@ -54,9 +54,9 @@ const tileMap = [
     "X    X       X    X",
     "XXXX XXXX XXXX XXXX",
     "OOOX X       X XOOO",
-    "XXXX X XXrXX X XXXX",
-    "X       bpo       X",
-    "XXXX X XXCXX X XXXX",
+    "XXXX X XbroX X XXXX",
+    "X        p        X",
+    "XXXX X X   X X XXXX",
     "OOOX X       X XOOO",
     "XXXX X XXXXX X XXXX",
     "X        X        X",
@@ -361,8 +361,6 @@ class Block {
 function startCountdownAnimation() {
     let count = 3;
     const colors = ["#00FFFF", "#00FF00", "#FFD700", "#FF0000"];
-
-    startSound.play()
 
     const countdown = setInterval(() => {
         context.clearRect(0, 0, boardWidth, boardHeight);
