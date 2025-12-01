@@ -1,6 +1,4 @@
-// =============================
 // GAME SETUP AND GLOBAL VARIABLES
-// =============================
 let board;
 let rowCount = 21;
 let columnCount = 19;
@@ -9,7 +7,7 @@ const boardWidth = columnCount * tileSize;
 const boardHeight = rowCount * tileSize;
 let context;
 
-// Game assets
+// Game image variables
 let blueGhostImg, orangeGhostImg, pinkGhostImg, redGhostImg;
 let pacmanUpImg, pacmanDownImg, pacmanLeftImg, pacmanRightImg;
 let wallImg, cherry;
@@ -21,9 +19,8 @@ let gameOver = false;
 let gameStarted = false; // Used to track if gameplay has begun
 let restarting = false;  // Used after game over for restart prompt
 
-// =============================
 // INITIALIZATION
-// =============================
+
 window.onload = function() {
     board = document.getElementById("board");
     board.height = boardHeight;
@@ -46,9 +43,8 @@ window.onload = function() {
     document.addEventListener("keyup", movePacman);
 };
 
-// =============================
+
 // MAP DATA (LEVEL 1)
-// =============================
 const tileMap = [
     "XXXXXXXXXXXXXXXXXXX",
     "X        X        X",
@@ -80,6 +76,7 @@ const walls = new Set();
 const foods = new Set();
 const ghosts = new Set();
 let pacman;
+
 
 // =============================
 // IMAGE LOADING
@@ -113,7 +110,6 @@ function loadImages() {
     pacmanRightImg.src = "./Images/pacmanRight.png";
 }
 
-// =============================
 // MAP CREATION FUNCTION
 // =============================
 function loadMap() {
@@ -143,7 +139,6 @@ function loadMap() {
     }
 }
 
-// =============================
 // MAIN GAME LOOP
 // =============================
 function update() {
@@ -183,7 +178,7 @@ function draw() {
     // Draw score and lives
     context.fillStyle = "yellow";
     context.font = "16px 'Press Start 2P', sans-serif";
-    context.fillText("Lives: " + lives + "   Score: " + score, 10, 20);
+    context.fillText("Lives: " + lives + "   Score: " + score, 15, 20);
 }
 
 // =============================
@@ -285,7 +280,7 @@ function collision(a, b) {
     );
 }
 
-// =============================
+
 // RESET POSITIONS
 // =============================
 function resetPositions() {
@@ -358,7 +353,7 @@ class Block {
     }
 }
 
-// =============================
+
 // ANIMATIONS
 // =============================
 
@@ -366,6 +361,8 @@ class Block {
 function startCountdownAnimation() {
     let count = 3;
     const colors = ["#00FFFF", "#00FF00", "#FFD700", "#FF0000"];
+
+    startSound.play()
 
     const countdown = setInterval(() => {
         context.clearRect(0, 0, boardWidth, boardHeight);
@@ -377,8 +374,8 @@ function startCountdownAnimation() {
         gradient.addColorStop(1, "#FF4500");
 
         // context.fillStyle = gradient;
-        context.font = "40px 'Press Start 2P', sans-serif";
-        context.fillText("PAC-MAN", boardWidth / 2 - 90, boardHeight / 2 - 60);
+        context.font = "60px 'Press Start 2P', sans-serif";
+        context.fillText("PAC-MAN", boardWidth / 2 - 130, boardHeight / 2 - 60);
 
         // Countdown number
         context.fillStyle = colors[count];
@@ -390,7 +387,7 @@ function startCountdownAnimation() {
             clearInterval(countdown);
             context.clearRect(0, 0, boardWidth, boardHeight);
             context.fillStyle = "#00FF00";
-            context.font = "50px 'Press Start 2P', sans-serif";
+            context.font = "80px 'Press Start 2P', sans-serif";
             context.fillText("GO!", boardWidth / 2 - 50, boardHeight / 2);
             setTimeout(() => {
                 gameStarted = true;
@@ -408,11 +405,11 @@ function gameOverAnimation() {
         context.fillRect(0, 0, boardWidth, boardHeight);
 
         context.fillStyle = `rgba(255, 0, 0, ${opacity})`;
-        context.font = "40px 'Press Start 2P', sans-serif";
+        context.font = "50px 'Press Start 2P', sans-serif";
         context.fillText("GAME OVER", boardWidth / 2 - 150, boardHeight / 2 - 40);
 
         context.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-        context.font = "20px 'Press Start 2P', sans-serif, centre";
+        context.font = "15px 'Press Start 2P', sans-serif, centre";
         context.fillText("SCORE: " + score, boardWidth / 2 - 80, boardHeight / 2 + 10);
         context.fillText("Press any key to restart", boardWidth / 2 - 120, boardHeight / 2 + 60);
 
