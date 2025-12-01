@@ -70,18 +70,18 @@ const tileMap = [
     "XXXXXXXXXXXXXXXXXXX"
 ];
 
-// =============================
+  
 // GAME OBJECT COLLECTIONS
-// =============================
+  
 const walls = new Set();
 const foods = new Set();
 const ghosts = new Set();
 let pacman;
 
 
-// =============================
+  
 // IMAGE LOADING
-// =============================
+  
 function loadImages() {
     wallImg = new Image();
     wallImg.src = "./Images/wall.png";
@@ -112,7 +112,7 @@ function loadImages() {
 }
 
 // MAP CREATION FUNCTION
-// =============================
+  
 function loadMap() {
     walls.clear();
     foods.clear();
@@ -141,7 +141,7 @@ function loadMap() {
 }
 
 // MAIN GAME LOOP
-// =============================
+  
 function update() {
     if (gameOver) {
         return;
@@ -151,9 +151,9 @@ function update() {
     setTimeout(update, 50);
 }
 
-// =============================
+  
 // RENDERING
-// =============================
+  
 function draw() {
     context.clearRect(0, 0, board.width, board.height);
 
@@ -182,9 +182,9 @@ function draw() {
     context.fillText("Lives: " + lives + "   Score: " + score, 15, 20);
 }
 
-// =============================
+  
 // MOVEMENT LOGIC
-// =============================
+  
 function move() {
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
@@ -237,9 +237,9 @@ function move() {
     foods.delete(foodEaten);
 }
 
-// =============================
+  
 // INPUT HANDLER
-// =============================
+  
 function movePacman(e) {
     if (restarting && gameOver) {
         // Restart the game after pressing any key
@@ -269,21 +269,33 @@ function movePacman(e) {
     else if (pacman.direction == "R") pacman.image = pacmanRightImg;
 }
 
-// =============================
+  
 // COLLISION DETECTION
-// =============================
+  
 function collision(a, b) {
+    // Return true if the two rectangles overlap.
+    // We check this using the AABB method:
+    // Two rectangles collide only if ALL these conditions are true:
+
     return (
+        // a's left side is left of b's right side
         a.x < b.x + b.width &&
+
+        // a's right side is right of b's left side
         a.x + a.width > b.x &&
+
+        // a's top side is above b's bottom side
         a.y < b.y + b.height &&
+
+        // a's bottom side is below b's top side
         a.y + a.height > b.y
     );
 }
 
 
+
 // RESET POSITIONS
-// =============================
+  
 function resetPositions() {
     pacman.reset();
     pacman.velocityX = 0;
@@ -296,63 +308,72 @@ function resetPositions() {
     }
 }
 
-// =============================
+  
 // BLOCK CLASS
-// =============================
 class Block {
+    // runs when you create a new Block(e.g. a wall, ghost, pacman, or food pellet)
     constructor(image, x, y, width, height) {
-        this.image = image;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        this.image = image;     // image object used for drawing (can be null for food pellets)
+        this.x = x;             // current x position (pixels)
+        this.y = y;             // current y position (pixels)
+        this.width = width;     // width in pixels
+        this.height = height;   // height in pixels
 
-        this.startX = x;
-        this.startY = y;
-        this.direction = "R";
-        this.velocityX = 0;
-        this.velocityY = 0;
+        this.startX = x;        // original x position (saved so reset() can return here)
+        this.startY = y;        // original y position (saved so reset() can return here)
+        this.direction = "R";   // current logical direction: "U", "D", "L", or "R" (default Right)
+        this.velocityX = 0;     // current horizontal speed in px per tick/frame
+        this.velocityY = 0;     // current vertical speed in px per tick/frame
     }
 
+    //attempt to change the block's direction and move it one step
     updateDirection(direction) {
-        const prevDirection = this.direction;
-        this.direction = direction;
-        this.updateVelocity();
+        const prevDirection = this.direction; // save the old direction in case we must revert
+        this.direction = direction;           // set the new direction
+        this.updateVelocity();                // compute velocityX / velocityY based on new direction
 
+        // Attempt to move immediately by one velocity step
         this.x += this.velocityX;
         this.y += this.velocityY;
 
+        // If the attempted move collides with any wall, undo it and restore previous direction/velocity
         for (let wall of walls.values()) {
             if (collision(this, wall)) {
+                // Undo the movement we just applied
                 this.x -= this.velocityX;
                 this.y -= this.velocityY;
+
+                // Restore previous direction and recompute velocities
                 this.direction = prevDirection;
                 this.updateVelocity();
             }
         }
     }
 
+    //set velocityX and velocityY according to direction and speed
     updateVelocity() {
         if (this.direction == "U") {
-            this.velocityX = 0;
-            this.velocityY = -tileSize / 4;
+            this.velocityX = 0;                // no horizontal movement when moving up
+            this.velocityY = -tileSize / 4;   // negative because screen y increases downward
         } else if (this.direction == "D") {
             this.velocityX = 0;
-            this.velocityY = tileSize / 4;
+            this.velocityY = tileSize / 4;    // down = positive y
         } else if (this.direction == "L") {
-            this.velocityX = -tileSize / 4;
+            this.velocityX = -tileSize / 4;   // left = negative x
             this.velocityY = 0;
         } else if (this.direction == "R") {
-            this.velocityX = tileSize / 4;
+            this.velocityX = tileSize / 4;    // right = positive x
             this.velocityY = 0;
         }
     }
 
+    //return the block to its original start position
     reset() {
         this.x = this.startX;
         this.y = this.startY;
     }
 }
+
 
 
 // Controls menu
@@ -396,7 +417,7 @@ function createControlsMenu() {
 
 
 // ANIMATIONS
-// =============================
+  
 
 // Countdown animation before the game starts
 function startCountdownAnimation() {
